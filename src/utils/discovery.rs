@@ -1,6 +1,9 @@
 use network_interface::{Addr, NetworkInterface, NetworkInterfaceConfig};
+use std::fmt::Display;
+use std::fmt::{Error, Formatter};
 use std::net::UdpSocket;
 use std::str::from_utf8;
+use std::time::Duration;
 
 #[derive(Debug)]
 pub struct Device {
@@ -9,9 +12,20 @@ pub struct Device {
     pub model: String,
 }
 
-pub fn discover() -> Vec<Device> {
-    let port = 48899;
+impl Display for Device {
+    fn fmt(&self, fmt: &mut Formatter<'_>) -> Result<(), Error> {
+        write!(
+            fmt,
+            "{} - Model: {} ({})",
+            self.address, self.model, self.id
+        )
+    }
+}
 
+const PORT: usize = 48899;
+const BROADCAST_MESSAGE: &str = "HF-A11ASSISTHREAD";
+
+pub fn discover(timeout_seconds: u64) -> Vec<Device> {
     let network_interfaces = NetworkInterface::show().unwrap();
     let mut addresses: Vec<String> = Vec::new();
 
@@ -42,18 +56,22 @@ pub fn discover() -> Vec<Device> {
     socket
         .set_broadcast(true)
         .expect("set_broadcast call failed");
+    socket
+        .set_read_timeout(Some(Duration::new(timeout_seconds, 0)))
+        .expect("failed to set_read_timeout");
 
     for addr in &addresses {
-        let full_addr = format!("{}:{}", addr, port);
+        let full_addr = format!("{}:{}", addr, PORT);
 
-        match socket.send_to("HF-A11ASSISTHREAD".as_bytes(), full_addr) {
-            Err(_) => continue,
-            Ok(_) => continue,
+        match socket.send_to(BROADCAST_MESSAGE.as_bytes(), &full_addr) {
+            Ok(status) => println!("[DEBUG] OK {} on {}", status, &full_addr),
+            Err(err) => println!("failed to broadcast on {} {}", &full_addr, err),
         };
     }
 
     let mut devices: Vec<Device> = Vec::new();
     let mut buf = [0; 100];
+
     match socket.recv_from(buf.as_mut_slice()) {
         Ok((amt, _)) => {
             let data = from_utf8(&mut buf[..amt]);
