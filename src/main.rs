@@ -1,13 +1,23 @@
 mod utils;
 use core::panic;
+use std::net::TcpStream;
 use std::process::exit;
 
 use dialoguer::{theme::ColorfulTheme, Input, Select};
 use utils::control::{change_color, turn_off, turn_on};
+use utils::discovery::discover;
 use utils::light::{connect, status};
 fn main() {
-    let stream = connect("192.168.1.193", 5577);
+    for device in discover() {
+        let stream = connect(&device.address, 5577);
+        println!("Found device {}", device.address);
+        _menu(&stream);
+    }
+}
+
+fn _menu(stream: &TcpStream) {
     let states = &["Change Color", "Turn On", "Turn Off", "Status", "Exit"];
+    status(&stream);
 
     loop {
         let turn_on_off = Select::with_theme(&ColorfulTheme::default())
