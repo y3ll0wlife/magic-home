@@ -21,3 +21,17 @@ pub fn change_color(mut stream: &TcpStream, red: u8, green: u8, blue: u8, white:
     let buffer: &[u8; 8] = &[0x31, red, green, blue, white, 0x00, 0x0f, 0x00];
     stream.write(buffer).expect("failed to write to the light");
 }
+
+pub fn change_color_brightness(stream: &TcpStream, red: u8, green: u8, blue: u8, brightness: u8) {
+    let mut r = (255 / 100) * brightness;
+    let mut g = (255 / 100) * brightness;
+    let mut b = (255 / 100) * brightness;
+
+    if red > 0 || green > 0 || blue > 0 {
+        r = red / 100 * brightness;
+        g = green / 100 * brightness;
+        b = blue / 100 * brightness;
+    }
+
+    change_color(&stream, r, g, b, 0);
+}
