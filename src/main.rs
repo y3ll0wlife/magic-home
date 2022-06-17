@@ -8,16 +8,27 @@ use utils::control::{change_color, turn_off, turn_on};
 use utils::discovery::discover;
 use utils::light::{connect, status};
 fn main() {
-    for device in discover() {
-        let stream = connect(&device.address, 5577);
-        println!("Found device {}", device.address);
-        _menu(&stream);
+    let devices = discover(1);
+
+    if devices.is_empty() {
+        println!("No devices was found, please ensure you are on the correct network");
+        exit(0)
     }
+
+    let selection = Select::with_theme(&ColorfulTheme::default())
+        .with_prompt("Pick your device")
+        .default(0)
+        .items(&devices[..])
+        .interact()
+        .unwrap();
+
+    let stream = connect(&devices.get(selection).unwrap().address, 5577);
+
+    _menu(&stream);
 }
 
 fn _menu(stream: &TcpStream) {
     let states = &["Change Color", "Turn On", "Turn Off", "Status", "Exit"];
-    status(&stream);
 
     loop {
         let turn_on_off = Select::with_theme(&ColorfulTheme::default())
