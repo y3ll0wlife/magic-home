@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-fn clamp(value: usize, min: usize, max: usize) -> usize {
+fn _clamp(value: usize, min: usize, max: usize) -> usize {
     let val2 = match min.cmp(&value) {
         Ordering::Less => value,
         Ordering::Greater => min,

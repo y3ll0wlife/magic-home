@@ -1,9 +1,11 @@
+#![allow(dead_code)]
+
 use std::net::TcpStream;
 use std::os::windows::prelude::AsRawSocket;
 
 pub fn status(stream: &TcpStream) {
     println!(
-        "{} -> {} via socket {}",
+        "{} → {} via socket {}",
         &stream.local_addr().unwrap(),
         &stream.peer_addr().unwrap(),
         &stream.as_raw_socket()
