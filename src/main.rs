@@ -1,12 +1,12 @@
 mod utils;
 use core::panic;
+use dialoguer::{theme::ColorfulTheme, Input, Select};
 use std::net::TcpStream;
 use std::process::exit;
-
-use dialoguer::{theme::ColorfulTheme, Input, Select};
 use utils::control::{change_color, turn_off, turn_on};
 use utils::discovery::discover;
 use utils::light::{connect, status};
+
 fn main() {
     let devices = discover(1);
 
